@@ -49,7 +49,7 @@ The original 11 skills are unchanged, including their requirement for manual rev
 
 ## Safety model and limits
 
-- Approval covers metadata and the **file path**, not a content hash of the entire video. Replacing the video at the same path after approval is not detected. Before uploading, verify the actual file; for stricter guarantees, extend this implementation to hash the complete file.
+- Approval covers metadata and the **file path**, a SHA-256 content hash of the entire video. Replacing the file at the same path after approval blocks uploading.
 - Uploads are network operations and can succeed remotely even if the client times out before recording the video ID. Inspect YouTube Studio before retrying a failed upload.
 - Channel access is OAuth and requires interactive owner authorization. There is no connection configured by cloning this repository.
 - Generated descriptions, scripts and plans must be reviewed for accuracy and copyright.
