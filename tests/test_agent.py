@@ -42,6 +42,12 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(key, prepare(self.queue, self.video, "Title", "", "private", []))
         self.assertFalse(can_upload(self.queue[key]))
 
+    def test_replaced_video_revokes_approval(self):
+        key = prepare(self.queue, self.video, "Title", "", "private", [])
+        approve(self.queue, key, "APPROVE " + key)
+        self.video.write_bytes(b"changed")
+        self.assertFalse(can_upload(self.queue[key]))
+
     def test_serialization(self):
         key = prepare(self.queue, self.video, "Title", "", "private", [])
         queuefile = self.folder / ".queue" / "queue.json"
