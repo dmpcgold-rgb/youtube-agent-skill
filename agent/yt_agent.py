@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_QUEUE = ROOT / ".youtube-agent" / "queue.json"
 
 def digest(job):
-    fields = {k: job[k] for k in ("video", "title", "description", "privacy", "tags")}
+    fields = {k: job[k] for k in ("video", "video_sha256", "title", "description", "privacy", "tags")}
     return hashlib.sha256(json.dumps(fields, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 def load_queue(path):
@@ -36,6 +36,13 @@ def save_queue(path, queue):
 def utcnow():
     return datetime.now(timezone.utc).isoformat()
 
+def file_sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            h.update(block)
+    return h.hexdigest()
+
 def create_job(video, title, description, privacy, tags):
     video_path = Path(video).expanduser().resolve()
     if not video_path.is_file():
@@ -47,7 +54,7 @@ def create_job(video, title, description, privacy, tags):
     if privacy not in ("private", "unlisted", "public"):
         raise ValueError("Invalid privacy")
     job = {
-        "video": str(video_path), "title": title.strip(), "description": description,
+        "video": str(video_path), "video_sha256": file_sha256(video_path), "title": title.strip(), "description": description,
         "privacy": privacy, "tags": tags, "status": "draft", "created_at": utcnow(),
         "approved_digest": None, "uploaded_video_id": None,
     }
@@ -68,8 +75,8 @@ def approve(queue, key, confirmation):
     expected = "APPROVE " + key
     if confirmation != expected:
         raise ValueError("Approval requires typing exactly: " + expected)
-    if not Path(job["video"]).is_file():
-        raise ValueError("Video no longer exists")
+    if not Path(job["video"]).is_file() or file_sha256(job["video"]) != job["video_sha256"]:
+        raise ValueError("Video file missing or changed")
     job["approved_digest"] = digest(job)
     job["status"] = "approved"
     job["approved_at"] = utcnow()
@@ -78,6 +85,7 @@ def can_upload(job):
     return (job.get("status") == "approved" and
             job.get("approved_digest") == digest(job) and
             Path(job["video"]).is_file() and
+            file_sha256(job["video"]) == job.get("video_sha256") and
             not job.get("uploaded_video_id"))
 
 def youtube_service(client_secret, token_file, scopes):
