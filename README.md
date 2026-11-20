@@ -47,6 +47,15 @@ Then spend ten minutes on [`templates/voice.md`](templates/voice.md). Copy it to
 my voice.md from these". Every skill reads that file. It matters more here than anywhere else,
 because you have to say the words out loud.
 
+## Optional channel agent (review-gated)
+
+The original 11 skills work independently of YouTube OAuth. An optional extension adds a
+local publication queue, read-only channel summary, and uploads **only after explicit approval**.
+It defaults to private uploads, validates the video's SHA-256 against the approved package, and
+requires a separate upload command. No publishing has been enabled automatically.
+
+See [agent/README.md](agent/README.md) for installation, OAuth setup, commands, and limitations.
+
 ## The eleven
 
 | command | what it does |
