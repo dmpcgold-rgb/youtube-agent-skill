@@ -48,7 +48,7 @@ def main():
     start = ys[0] or 100.0
     # HOOK: the first 30 seconds, or the first 10% when the axis is a percentage and we have no duration
     cutoff = 30.0 if not pct_axis else (30.0 / dur * 100 if dur else 10.0)
-    hook_end = min((y for x, y in rows if x <= cutoff), default=start)
+    hook_end = next((y for x, y in reversed(rows) if x <= cutoff), start)
     hook_leak = start - hook_end
     drops = []
     for i in range(1, len(rows)):
