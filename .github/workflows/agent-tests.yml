@@ -1,0 +1,24 @@
+name: Agent validation
+on:
+  push:
+    paths:
+      - 'agent/**'
+      - 'tests/**'
+      - '.github/workflows/agent-tests.yml'
+  pull_request:
+    paths:
+      - 'agent/**'
+      - 'tests/**'
+      - '.github/workflows/agent-tests.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check of all existing Python tools and agent
+        run: python -m compileall -q agent skills tests
+      - name: Standard library unit tests
+        run: python -m unittest discover -s tests -v
